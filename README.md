@@ -16,4 +16,4 @@ To Run Animation:
 - Delete the cmake-build-debug and generate your own using cmake -S . -B cmake-build-debug
 - cd cmake-build-debug
 - cmake --build .
-- ./lab4_skeleton / ./lab4_character
+- ./lab4_skeleton or ./lab4_character
