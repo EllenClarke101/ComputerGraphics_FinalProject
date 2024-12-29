@@ -20,133 +20,135 @@ static GLFWwindow *window;
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-// OpenGL camera view parameters
-static glm::vec3 eye_center;
+static glm::vec3 eye;
 static glm::vec3 lookat(0, 0, 0);
 static glm::vec3 up(0, 1, 0);
-
-// View control
-static float viewAzimuth = 0.f;
-static float viewPolar = 0.f;
-static float viewDistance = 600.0f;
-
-// Variables for cursor view control
-static double lastX = 400, lastY = 300;
-static float yaw = -90.0f;       //Facing negative z
+static double X = 400, lastY = 300;
+static float Y = -90.0f;
 static float pitch = 0.0f;
-static bool firstMouse = true;
-
+static bool Mouse = true;
 float lastFrame = 0.0f;
 float deltaTime = 0.0f;
+static float Azimuth = 0.f;
+static float Polar = 0.f;
+static float Distance = 600.0f;
 
 
+// Function to load a texture from a file and set it up for OpenGL
 static GLuint LoadTextureTileBox(const char *texture_file_path) {
-    int w, h, channels;
-    stbi_set_flip_vertically_on_load(false);
-    uint8_t* img = stbi_load(texture_file_path, &w, &h, &channels, 3);
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    int w, h, channels; // Variables to store texture width, height, and number of channels
+    stbi_set_flip_vertically_on_load(false); // Ensure the image is loaded without flipping vertically (default behavior)
 
-    // To tile textures on a box, we set wrapping to repeat
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Load the image file into memory
+    uint8_t* img = stbi_load(texture_file_path, &w, &h, &channels, 3); // Load image with 3 color channels (RGB)
+    
+    GLuint texture; // Variable to hold the generated texture ID
+    glGenTextures(1, &texture); // Generate an OpenGL texture object
+    glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture as a 2D texture
 
+    // Set texture wrapping parameters for the S and T axes (horizontal and vertical)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Repeat texture horizontally
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Repeat texture vertically
+
+    // Set filtering options for minification and magnification
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // Use mipmaps and linear filtering for minification
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Use linear filtering for magnification
+
+    // Check if the image was successfully loaded
     if (img) {
+        // Specify a 2D texture image, with width, height, and pixel data from the loaded image
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
+
+        // Generate mipmaps for the texture to improve rendering at different distances
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
+        // Log an error message if the image failed to load
         std::cout << "Failed to load texture " << texture_file_path << std::endl;
     }
+
+    // Free the memory used by the loaded image since it's no longer needed
     stbi_image_free(img);
 
+    // Return the OpenGL texture ID
     return texture;
 }
 
-
+// Struct to represent a Skybox in the scene
 struct Skybox {
-    glm::vec3 position;        // Position of the box
-    glm::vec3 scale;        // Size of the box in each axis
+    // Position and scale of the skybox
+    glm::vec3 pos;
+    glm::vec3 scale;
 
-    GLfloat vertex_buffer_data[72] = {    // Vertex definition for a canonical box
-        // Front face
+    // Vertex positions for the cube representing the skybox
+    GLfloat vertex_buffer_data[72] = {
+
         -1.0f, -1.0f, 1.0f,
         1.0f, -1.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
         -1.0f, 1.0f, 1.0f,
 
-        // Back face
         1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
         -1.0f, 1.0f, -1.0f,
         1.0f, 1.0f, -1.0f,
 
-        // Left face
         -1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f, 1.0f,
         -1.0f, 1.0f, 1.0f,
         -1.0f, 1.0f, -1.0f,
 
-        // Right face
         1.0f, -1.0f, 1.0f,
         1.0f, -1.0f, -1.0f,
         1.0f, 1.0f, -1.0f,
         1.0f, 1.0f, 1.0f,
 
-        // Top face
         -1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, -1.0f,
         -1.0f, 1.0f, -1.0f,
 
-        // Bottom face
         -1.0f, -1.0f, -1.0f,
         1.0f, -1.0f, -1.0f,
         1.0f, -1.0f, 1.0f,
         -1.0f, -1.0f, 1.0f,
     };
 
+    // Color data for each vertex of the skybox
     GLfloat color_buffer_data[72] = {
-        // Front, red
+
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
 
-        // Back, yellow
         1.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
 
-        // Left, green
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
 
-        // Right, cyan
         0.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
 
-        // Top, blue
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
 
-        // Bottom, magenta
         1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f,
     };
 
-    GLuint index_buffer_data[36] = {        // 12 triangle faces of a box
+    // Index buffer to define triangles for rendering the cube
+    GLuint index_buffer_data[36] = {
         0, 3, 2,
         0, 2, 1,
 
@@ -166,51 +168,38 @@ struct Skybox {
         20, 22, 21,
     };
 
-    // TODO: Define UV buffer data
-    // ---------------------------
-    // ---------------------------
-
+    // UV coordinates for texture mapping
     GLfloat uv_buffer_data[48] = {
-        // Front face (positive Z)
-        0.5f, 0.666f,  // Top right
-        0.25f, 0.666f, // Top left
-        0.25f, 0.333f, // Bottom left
-        0.5f, 0.333f,  // Bottom right
 
-        // Back face (negative Z)
-        1.0f, 0.666f,  // Top right
-        0.75f, 0.666f, // Top left
-        0.75f, 0.333f, // Bottom left
-        1.0f, 0.333f,  // Bottom right
+        0.5f, 0.666f,
+        0.25f, 0.666f,
+        0.25f, 0.333f,
+        0.5f, 0.333f,
 
+        1.0f, 0.666f,
+        0.75f, 0.666f,
+        0.75f, 0.333f,
+        1.0f, 0.333f,
 
-        0.75f, 0.666f, // Top left
-        0.5f, 0.666f,  // Top right
-        0.5f, 0.333f,  // Bottom right
-        0.75f, 0.333f, // Bottom left
+        0.75f, 0.666f,
+        0.5f, 0.666f,
+        0.5f, 0.333f,
+        0.75f, 0.333f,
 
-        // Left face (negative X) - Correct
-        0.25f, 0.666f, // Top right
-        0.0f, 0.666f,  // Top left
-        0.0f, 0.333f,  // Bottom left
-        0.25f, 0.333f, // Bottom right
-
-        // Right face (positive X) - Correct
+        0.25f, 0.666f,
+        0.0f, 0.666f,
+        0.0f, 0.333f,
+        0.25f, 0.333f,
 
         0.5f, 0.333f,
-        0.25f, 0.333f, // Top left
-          // Top right
+        0.25f, 0.333f,
         0.25f, 0.0f,
-        0.5f, 0.0f,    // Bottom right
-          // Bottom left
+        0.5f, 0.0f,
 
-        // Bottom face (negative Y) - Now using the previous Top UV coordinates
         0.5f, 1.0f,
-        0.25f, 1.0f,   // Top left
-           // Top right
+        0.25f, 1.0f,
         0.25f, 0.666f,
-        0.5f, 0.666f,  // Bottom right
-         // Bottom left
+        0.5f, 0.666f,
 
     };
 
@@ -227,59 +216,54 @@ struct Skybox {
     GLuint textureSamplerID;
     GLuint programID;
 
-    void initialize(glm::vec3 position, glm::vec3 scale) {
-        // Define scale of the building geometry
-        this->position = position;
-        this->scale = scale;
+    // Function to initialize the skybox
+    void initialize(glm::vec3 pos, glm::vec3 scale) {
 
-        // Create a vertex array object
+        this->pos = pos;
+        this->scale = scale;
+        
+        // Generate and bind the Vertex Array Object (VAO)
         glGenVertexArrays(1, &vertexArrayID);
         glBindVertexArray(vertexArrayID);
-
-        // Create a vertex buffer object to store the vertex data
+        
+        // Generate and upload vertex data
         glGenBuffers(1, &vertexBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
-        // Create a vertex buffer object to store the color data
-        // TODO:
+        // Generate and upload color data
         glGenBuffers(1, &colorBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(color_buffer_data), color_buffer_data, GL_STATIC_DRAW);
 
-        // TODO: Create a vertex buffer object to store the UV data
-        // --------------------------------------------------------
-        // --------------------------------------------------------
+        // Generate and upload UV data
         glGenBuffers(1, &uvBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data, GL_STATIC_DRAW);
 
-        // Create an index buffer object to store the index data that defines triangle faces
+        // Generate and upload index data
         glGenBuffers(1, &indexBufferID);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW);
 
-        // Create and compile our GLSL program from the shaders
+        // Load shaders
         programID = LoadShadersFromFile("../city/skybox.vert", "../city/skybox.frag");
         if (programID == 0)
         {
             std::cerr << "Failed to load shaders." << std::endl;
         }
 
-        // Get a handle for our "MVP" uniform
+        // Load texture
         mvpMatrixID = glGetUniformLocation(programID, "MVP");
-
-        // TODO: Load a texture
         textureID = LoadTextureTileBox("../city/sky.png");
-
-
-        // TODO: Get a handle to texture sampler
         textureSamplerID =glGetUniformLocation(programID, "textureSampler");
     }
 
+    // Function to render the skybox
     void render(glm::mat4 cameraMatrix) {
         glUseProgram(programID);
-
+        
+        // Bind and configure vertex attributes
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -288,20 +272,16 @@ struct Skybox {
         glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+        // Bind index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 
-        // TODO: Model transform
-        // -----------------------
+        // Create model matrix and calculate MVP
         glm::mat4 modelMatrix = glm::mat4();
-        // Scale the box along each axis to make it look like a building
         modelMatrix = glm::scale(modelMatrix, scale);
-        // -----------------------
-
-        // Set model-view-projection matrix
         glm::mat4 mvp = cameraMatrix * modelMatrix;
         glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
 
-        // TODO: Enable UV buffer and texture sampler
+        // Bind texture
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -313,17 +293,19 @@ struct Skybox {
 
         // Draw the box
         glDrawElements(
-            GL_TRIANGLES,      // mode
-            36,                   // number of indices
-            GL_UNSIGNED_INT,   // type
-            (void*)0           // element array buffer offset
+            GL_TRIANGLES,
+            36,
+            GL_UNSIGNED_INT,
+            (void*)0
         );
 
+        // Disable vertex attributes
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
     }
 
+    // Function to clean up allocated resources
     void cleanup() {
         glDeleteBuffers(1, &vertexBufferID);
         glDeleteBuffers(1, &colorBufferID);
@@ -336,92 +318,80 @@ struct Skybox {
 
 };
 
-
-
-
-
-//Constructor for the 'box' that will act as a building
+// Struct to represent a Building in the scene
 struct Building {
-    glm::vec3 position;      //This is the position of the 'box'
-    glm::vec3 scale;         // The size of the box for each axis
+    // Position and scale of the building
+    glm::vec3 pos;
+    glm::vec3 scale;
 
-    GLfloat vertex_buffer_data[72] = {    // Vertex definition for a canonical box
-        // Front face
+    // Vertex data for the building (a cube shape)
+    GLfloat vertex_buffer_data[72] = {
         -1.0f, -1.0f, 1.0f,
         1.0f, -1.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
         -1.0f, 1.0f, 1.0f,
 
-        // Back face
         1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
         -1.0f, 1.0f, -1.0f,
         1.0f, 1.0f, -1.0f,
 
-        // Left face
         -1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f, 1.0f,
         -1.0f, 1.0f, 1.0f,
         -1.0f, 1.0f, -1.0f,
 
-        // Right face
         1.0f, -1.0f, 1.0f,
         1.0f, -1.0f, -1.0f,
         1.0f, 1.0f, -1.0f,
         1.0f, 1.0f, 1.0f,
 
-        // Top face
         -1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, -1.0f,
         -1.0f, 1.0f, -1.0f,
 
-        // Bottom face
         -1.0f, -1.0f, -1.0f,
         1.0f, -1.0f, -1.0f,
         1.0f, -1.0f, 1.0f,
         -1.0f, -1.0f, 1.0f,
     };
 
+    // Color data for each vertex of the skybox
     GLfloat color_buffer_data[72] = {
-        // Front, red
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
 
-        // Back, yellow
         1.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
 
-        // Left, green
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
 
-        // Right, cyan
         0.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
 
-        // Top, blue
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
 
-        // Bottom, magenta
         1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f,
     };
 
-    GLuint index_buffer_data[36] = {        // 12 triangle faces of a box
+    // Index data for drawing triangles (faces of the cube)
+    GLuint index_buffer_data[36] = {
         0, 1, 2,
         0, 2, 3,
 
@@ -441,48 +411,40 @@ struct Building {
         20, 22, 23,
     };
 
-    // TODO: Define UV buffer data
-    // ---------------------------
-    // ---------------------------
+    // UV mapping for texture coordinates
     GLfloat uv_buffer_data[48] = {
-        //Front
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
         0.0f, 0.0f,
 
-        //Back
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
         0.0f, 0.0f,
 
-        //Left
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
         0.0f, 0.0f,
 
-        //Right
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
         0.0f, 0.0f,
 
-        //Top - we do not want to texture the top
         0.0f, 0.0f,
         0.0f, 0.0f,
         0.0f, 0.0f,
         0.0f, 0.0f,
 
-        //Bottom - we do not want to texture the bottom
         0.0f, 0.0f,
         0.0f, 0.0f,
         0.0f, 0.0f,
         0.0f, 0.0f,
     };
 
-    //The OpenGL buffers
+    // OpenGL buffer IDs
     GLuint vertexArrayID;
     GLuint vertexBufferID;
     GLuint indexBufferID;
@@ -490,94 +452,95 @@ struct Building {
     GLuint uvBufferID;
     GLuint textureID;
 
-    //Shader IDs
+    // Shader and uniform variable IDs
     GLuint mvpMatrixID;
     GLuint textureSamplerID;
     GLuint programID;
 
-
-    //Function to initalise the buildings
-    void initialize(glm::vec3 position, glm::vec3 scale, const char* texturePath="../city/building_texture.jpg") {
-        // Define the scale of the building's geometry
-        this->position = position;
+    // Initialize the building with position, scale, and texture path
+    void initialize(glm::vec3 pos, glm::vec3 scale, const char* texturePath="../city/building_texture.jpg") {
+        this->pos = pos;
         this->scale = scale;
 
-        // Adjust UV mapping scale to avoid excessive repetition
+        // Scale the UV mapping to adapt to the building's size
         for (int i = 0; i < 24; ++i) {
             uv_buffer_data[2 * i + 0] *= scale.x / 50.0f; // Scale U based on building width
             uv_buffer_data[2 * i + 1] *= scale.y / 50.0f; // Scale V based on building height
         }
 
-        // Create OpenGL buffers as usual
+        // Generate and bind the Vertex Array Object
         glGenVertexArrays(1, &vertexArrayID);
         glBindVertexArray(vertexArrayID);
 
+        // Generate and upload vertex data
         glGenBuffers(1, &vertexBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
+        // Generate and upload UV mapping data
         glGenBuffers(1, &uvBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data, GL_STATIC_DRAW);
 
+        // Generate and upload index data
         glGenBuffers(1, &indexBufferID);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW);
 
+        // Load shaders for rendering the building
         programID = LoadShadersFromFile("../city/box.vert", "../city/box.frag");
+        // Get uniform variable IDs
         mvpMatrixID = glGetUniformLocation(programID, "MVP");
-        textureID = LoadTextureTileBox(texturePath);
         textureSamplerID = glGetUniformLocation(programID, "textureSampler");
+        // Load texture for the building
+        textureID = LoadTextureTileBox(texturePath);
     }
 
-
-    //Function to render in the objects
+    // Render the building
     void render(glm::mat4 cameraMatrix) {
       glUseProgram(programID);
+      // Bind and configure vertex attributes
       glEnableVertexAttribArray(0);
       glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-
+      // Bind index buffer for drawing
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 
-      // Model transform
-
+      // Create model matrix for position and scale
       glm::mat4 modelMatrix = glm::mat4(1.0f);
-      // Scale the box along each axis to make it look like a building
-      modelMatrix = glm::translate(modelMatrix, position);
+      modelMatrix = glm::translate(modelMatrix, pos);
       modelMatrix = glm::scale(modelMatrix, scale);
 
-
-      // Set model-view-projection matrix
+      // Calculate and send the MVP matrix to the shader
       glm::mat4 mvp = cameraMatrix * modelMatrix;
       glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
 
-      //  Enable UV buffer and texture sampler
-
+      // Bind and configure UV data
       glEnableVertexAttribArray(1);
       glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
       glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-      //Set textureSampler to use texture unit 0
+      // Bind texture
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, textureID);
       glUniform1i(textureSamplerID, 0);
 
-
-      // Draw the box
+      // Draw the building as a set of triangles
       glDrawElements(
-          GL_TRIANGLES,      // mode
-          36,                   // number of indices
-          GL_UNSIGNED_INT,   // type
-          (void*)0           // element array buffer offset
+          GL_TRIANGLES,
+          36,
+          GL_UNSIGNED_INT,
+          (void*)0
       );
 
+      // Disable vertex attributes
       glDisableVertexAttribArray(0);
       glDisableVertexAttribArray(1);
 
     }
 
+    // Cleanup allocated resources
     void cleanup() {
         glDeleteBuffers(1, &vertexBufferID);
         glDeleteBuffers(1, &colorBufferID);
@@ -589,7 +552,9 @@ struct Building {
     }
 };
 
-struct Floor {
+// Struct to represent a road in the scene
+struct Road {
+    // OpenGL buffer and shader program IDs
     GLuint vertexArrayID;
     GLuint vertexBufferID;
     GLuint uvBufferID;
@@ -598,8 +563,9 @@ struct Floor {
     GLuint mvpMatrixID;
     GLuint textureSamplerID;
 
+    // Initialize the road
     void initialize() {
-        //Vertex data for a large quad
+        // Vertex data representing a large rectangle for the road
         GLfloat vertex_buffer_data[] = {
             -1000.0f, -40.0f, -1000.0f,
             -1000.0f, -40.0f, 1000.0f,
@@ -607,6 +573,7 @@ struct Floor {
             1000.0f, -40.0f, -1000.0f
         };
 
+        // UV texture coordinates for the road
         GLfloat uv_buffer_data[] = {
             0.0f, 0.0f,
             0.0f, 100.0f,
@@ -614,50 +581,67 @@ struct Floor {
             100.0f, 0.0f
         };
 
+        // Generate and bind the Vertex Array Object
         glGenVertexArrays(1, &vertexArrayID);
         glBindVertexArray(vertexArrayID);
 
+        // Generate and upload vertex data to the GPU
         glGenBuffers(1, &vertexBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
+        // Generate and upload UV mapping data to the GPU
         glGenBuffers(1, &uvBufferID);
         glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
         glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data, GL_STATIC_DRAW);
 
+        // Load and compile the shaders for the road
         programID = LoadShadersFromFile("../city/road.vert", "../city/road.frag");
+        
+        // Get the uniform variable locations in the shader program
         mvpMatrixID = glGetUniformLocation(programID, "MVP");
-        textureID = LoadTextureTileBox("../city/road_texture.jpg");
         textureSamplerID = glGetUniformLocation(programID, "textureSampler");
+        
+        // Load the texture for the road surface
+        textureID = LoadTextureTileBox("../city/road_texture.jpg");
     }
 
-
+    // Render the road
     void render(glm::mat4 cameraMatrix) {
+        // Use the shader program
         glUseProgram(programID);
 
+        // Bind and configure the vertex data
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+        // Bind and configure the UV data
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
+        // Create the Model matrix (identity, as the road is static)
         glm::mat4 modelMatrix = glm::mat4(1.0f);
+        
+        // Calculate and send the MVP matrix to the shader
         glm::mat4 mvp = cameraMatrix * modelMatrix;
         glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
 
+        // Bind the road texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
         glUniform1i(textureSamplerID, 0);
 
+        // Draw the road as a triangle fan (connecting all vertices)
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
+        // Disable the vertex attributes after drawing
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
     }
 
-
+    // Cleanup resources to prevent memory leaks
     void cleanup() {
         glDeleteBuffers(1, &vertexBufferID);
         glDeleteBuffers(1, &uvBufferID);
@@ -668,19 +652,20 @@ struct Floor {
 };
 
 int main(void) {
-  // Initialise GLFW
+    // Initialize GLFW for window and OpenGL context management
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW." << std::endl;
         return -1;
     }
 
+    // Set GLFW window hints to specify OpenGL version and profile
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For MacOS
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Open a window and create its OpenGL context
+    // Create a GLFW window with specified dimensions
     window = glfwCreateWindow(1024, 768, "Lab 2", NULL, NULL);
     if (window == NULL)
     {
@@ -690,14 +675,14 @@ int main(void) {
     }
     glfwMakeContextCurrent(window);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   //Hide and capture cursor
+    // Set input mode for cursor visibility and add callbacks for input
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
-    // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetKeyCallback(window, key_callback);
 
-    // Load OpenGL functions, gladLoadGL returns the loaded version, 0 on error.
+    // Load OpenGL functions using glad
     int version = gladLoadGL(glfwGetProcAddress);
     if (version == 0)
     {
@@ -705,64 +690,59 @@ int main(void) {
         return -1;
     }
 
-    // Background
-    //glClearColor(0.2f, 0.2f, 0.25f, 0.0f);
-
+    // Enable depth testing and face culling for 3D rendering
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-
+    // Define containers for buildings
     std::vector<Building> buildings;
     std::vector<Building> buildings2;
     std::vector<Building> buildings3;
 
+    // Initialize the skybox with position and scale
     Skybox skybox;
     skybox.initialize(glm::vec3(0, 0, 0), glm::vec3(1000, 1000, 1000));
 
-    Floor floor;
-    floor.initialize();
+    // Initialize the road
+    Road road;
+    road.initialize();
     
+    // Procedurally generate buildings in a grid layout
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
             Building b;
-
-            // Fixed minimum spacing between buildings (200 units)
+            // Randomly calculate building positions and dimensions
             float spacing = 200.0f;
-
-            // Random offset for each building (up to 50 units)
             float randomOffsetX = static_cast<float>(rand()) / RAND_MAX * 50.0f;
             float randomOffsetZ = static_cast<float>(rand()) / RAND_MAX * 50.0f;
-
-            // Calculate position with spacing and offset
             float xPos = -800.0f + (col * spacing) + randomOffsetX;
             float zPos = -800.0f + (row * spacing) + randomOffsetZ;
-
-            // Random height between 100 and 300 units
             float height = 100.0f + static_cast<float>(rand()) / RAND_MAX * 200.0f;
-
-            // Random building size between 30 and 50 units
             float buildingWidth = 30.0f + static_cast<float>(rand()) / RAND_MAX * 20.0f;
             float buildingDepth = 30.0f + static_cast<float>(rand()) / RAND_MAX * 20.0f;
 
-            glm::vec3 position(xPos, height / 2, zPos);
+            // Set the position and scale of the building
+            glm::vec3 pos(xPos, height / 2, zPos);
             glm::vec3 scale(buildingWidth, height, buildingDepth);
 
-            b.initialize(position, scale); // Pass position and scale
+            // Initialize and store the building
+            b.initialize(pos, scale);
             buildings3.push_back(b);
         }
     }
+    // Set the initial camera position using spherical coordinates
+    eye.y = Distance * cos(Polar);
+    eye.x = Distance * cos(Azimuth);
+    eye.z = Distance * sin(Azimuth);
 
-    // Camera setup
-    eye_center.y = viewDistance * cos(viewPolar);
-    eye_center.x = viewDistance * cos(viewAzimuth);
-    eye_center.z = viewDistance * sin(viewAzimuth);
-
+    // Define the projection matrix for the scene
     glm::mat4 viewMatrix, projectionMatrix;
     glm::float32 FoV = 90;
     glm::float32 zNear = 0.1f;
     glm::float32 zFar = 2000.0f;
     projectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, zNear, zFar);
 
+    // Main render loop
     do {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -770,20 +750,19 @@ int main(void) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        viewMatrix = glm::lookAt(eye_center, lookat, up);
+        viewMatrix = glm::lookAt(eye, lookat, up);
         glm::mat4 vp = projectionMatrix * viewMatrix;
 
         glDisable(GL_DEPTH_TEST);
         skybox.render(vp);
         glEnable(GL_DEPTH_TEST);
 
-        floor.render(vp);
+        road.render(vp);
         
         glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
-        glm::mat4 viewMatrix = glm::lookAt(eye_center, lookat, up);
+        glm::mat4 viewMatrix = glm::lookAt(eye, lookat, up);
         glm::mat4 cameraMatrix = projectionMatrix * viewMatrix;
 
-        // Render buildings
         for (auto &building : buildings) {
             building.render(vp);
         }
@@ -795,11 +774,11 @@ int main(void) {
         }
         
         glm::mat4 viewProjection = vp * viewMatrix;
-        // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     } while (!glfwWindowShouldClose(window));
 
+    // Clean up allocated resources for all buildings
     for(auto &building : buildings) {
         building.cleanup();
     }
@@ -811,66 +790,67 @@ int main(void) {
     for(auto &building : buildings3) {
         building.cleanup();
     }
-
-    // Close OpenGL window and terminate GLFW
+    // Terminate GLFW
     glfwTerminate();
-
     return 0;
 }
 
-
-// Is called whenever a key is pressed/released via GLFW
+// Callback function for keyboard input
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     float moveSpeed = 5.0f;
-    glm::vec3 direction = glm::normalize(lookat - eye_center);
+    glm::vec3 direction = glm::normalize(lookat - eye);
     glm::vec3 right = glm::normalize(glm::cross(direction, up));
 
+    // Move camera forward
     if(key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         lookat += direction * moveSpeed;
-        eye_center += direction * moveSpeed;
+        eye += direction * moveSpeed;
     }
+    // Move camera backward
     if(key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         lookat -= direction * moveSpeed;
-        eye_center -= direction * moveSpeed;
+        eye -= direction * moveSpeed;
     }
+    // Move camera left
     if(key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         lookat -= right * moveSpeed;
-        eye_center -= right * moveSpeed;
+        eye -= right * moveSpeed;
     }
+    // Move camera right
     if(key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         lookat += right * moveSpeed;
-        eye_center += right * moveSpeed;
+        eye += right * moveSpeed;
     }
-
-    //Close the window
+    // Close the window if Escape key is pressed
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 }
 
-
+// Callback function for mouse input
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-    if (firstMouse) {
-        lastX = xpos;
+    if (Mouse) {
+        X = xpos;
         lastY = ypos;
-        firstMouse = false;
+        Mouse = false;
         return;
     }
-
-    float xoffset = float(xpos - lastX);
+    // Calculate mouse movement offsets
+    float xoffset = float(xpos - X);
     float yoffset = float(lastY - ypos);
-    lastX = xpos;
+    X = xpos;
     lastY = ypos;
 
+    // Adjust sensitivity for smooth camera rotation
     float sensitivity = 0.1f;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    yaw += xoffset;
+    Y += xoffset;
     pitch += yoffset;
 
-    //Prevent flipping
+    // Prevent camera from flipping
     if(pitch > 89.0f) {
         pitch = 89.0f;
     }
@@ -878,11 +858,11 @@ static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         pitch = -89.0f;
     }
 
-    //Calculate new direction
+    // Calculate the new camera direction
     glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.x = cos(glm::radians(Y)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    lookat = eye_center + glm::normalize(direction);
+    direction.z = sin(glm::radians(Y)) * cos(glm::radians(pitch));
+    lookat = eye + glm::normalize(direction);
 }
 
