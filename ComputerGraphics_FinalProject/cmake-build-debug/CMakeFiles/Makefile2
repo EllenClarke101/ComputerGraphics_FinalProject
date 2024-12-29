@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = "/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Fin
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/street.dir/all
+all: CMakeFiles/city.dir/all
 all: external/all
 .PHONY : all
 
@@ -72,7 +72,7 @@ preinstall: external/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/street.dir/clean
+clean: CMakeFiles/city.dir/clean
 clean: external/clean
 .PHONY : clean
 
@@ -140,31 +140,31 @@ external/glfw-3.1.2/src/clean: external/glfw-3.1.2/src/CMakeFiles/glfw.dir/clean
 .PHONY : external/glfw-3.1.2/src/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/street.dir
+# Target rules for target CMakeFiles/city.dir
 
 # All Build rule for target.
-CMakeFiles/street.dir/all: external/glad-3.3/CMakeFiles/glad.dir/all
-CMakeFiles/street.dir/all: external/glfw-3.1.2/src/CMakeFiles/glfw.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" --progress-num=16,17,18 "Built target street"
-.PHONY : CMakeFiles/street.dir/all
+CMakeFiles/city.dir/all: external/glad-3.3/CMakeFiles/glad.dir/all
+CMakeFiles/city.dir/all: external/glfw-3.1.2/src/CMakeFiles/glfw.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" --progress-num=1,2,3 "Built target city"
+.PHONY : CMakeFiles/city.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/street.dir/rule: cmake_check_build_system
+CMakeFiles/city.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" 18
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/street.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/city.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" 0
-.PHONY : CMakeFiles/street.dir/rule
+.PHONY : CMakeFiles/city.dir/rule
 
 # Convenience name for target.
-street: CMakeFiles/street.dir/rule
-.PHONY : street
+city: CMakeFiles/city.dir/rule
+.PHONY : city
 
 # clean rule for target.
-CMakeFiles/street.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/clean
-.PHONY : CMakeFiles/street.dir/clean
+CMakeFiles/city.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/clean
+.PHONY : CMakeFiles/city.dir/clean
 
 #=============================================================================
 # Target rules for target external/glad-3.3/CMakeFiles/glad.dir
@@ -173,7 +173,7 @@ CMakeFiles/street.dir/clean:
 external/glad-3.3/CMakeFiles/glad.dir/all:
 	$(MAKE) $(MAKESILENT) -f external/glad-3.3/CMakeFiles/glad.dir/build.make external/glad-3.3/CMakeFiles/glad.dir/depend
 	$(MAKE) $(MAKESILENT) -f external/glad-3.3/CMakeFiles/glad.dir/build.make external/glad-3.3/CMakeFiles/glad.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" --progress-num=1,2 "Built target glad"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" --progress-num=4,5 "Built target glad"
 .PHONY : external/glad-3.3/CMakeFiles/glad.dir/all
 
 # Build rule for subdir invocation for target.
@@ -199,7 +199,7 @@ external/glad-3.3/CMakeFiles/glad.dir/clean:
 external/glfw-3.1.2/src/CMakeFiles/glfw.dir/all:
 	$(MAKE) $(MAKESILENT) -f external/glfw-3.1.2/src/CMakeFiles/glfw.dir/build.make external/glfw-3.1.2/src/CMakeFiles/glfw.dir/depend
 	$(MAKE) $(MAKESILENT) -f external/glfw-3.1.2/src/CMakeFiles/glfw.dir/build.make external/glfw-3.1.2/src/CMakeFiles/glfw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15 "Built target glfw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/ellenclarke/Documents/College/YEAR4/Comp Graphics/Final Project/ComputerGraphics_FinalProject/cmake-build-debug/CMakeFiles" --progress-num=6,7,8,9,10,11,12,13,14,15,16,17,18 "Built target glfw"
 .PHONY : external/glfw-3.1.2/src/CMakeFiles/glfw.dir/all
 
 # Build rule for subdir invocation for target.

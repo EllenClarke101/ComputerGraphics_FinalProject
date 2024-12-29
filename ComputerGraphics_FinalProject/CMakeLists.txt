@@ -12,17 +12,18 @@ include_directories(
         external/glfw-3.1.2/include/
         external/glm-0.9.7.1/
         external/glad-opengl-3.3/include/
+        external/tinygltf-2.9.3/
         external/
-        street/
+        city/
 )
 
-add_executable(street
-        street/street.cpp
-        street/render/shader.cpp
+add_executable(city
+        city/city.cpp
+        city/render/shader.cpp
 )
 
 
-target_link_libraries(street
+target_link_libraries(city
         ${OPENGL_LIBRARY}
         glfw
         glad

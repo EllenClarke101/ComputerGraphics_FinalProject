@@ -117,17 +117,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named street
+# Target rules for targets named city
 
 # Build rule for target.
-street: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 street
-.PHONY : street
+city: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 city
+.PHONY : city
 
 # fast build rule for target.
-street/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/build
-.PHONY : street/fast
+city/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/build
+.PHONY : city/fast
 
 #=============================================================================
 # Target rules for targets named glad
@@ -155,53 +155,53 @@ glfw/fast:
 	$(MAKE) $(MAKESILENT) -f external/glfw-3.1.2/src/CMakeFiles/glfw.dir/build.make external/glfw-3.1.2/src/CMakeFiles/glfw.dir/build
 .PHONY : glfw/fast
 
-street/render/shader.o: street/render/shader.cpp.o
-.PHONY : street/render/shader.o
+city/city.o: city/city.cpp.o
+.PHONY : city/city.o
 
 # target to build an object file
-street/render/shader.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/street/render/shader.cpp.o
-.PHONY : street/render/shader.cpp.o
+city/city.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/city/city.cpp.o
+.PHONY : city/city.cpp.o
 
-street/render/shader.i: street/render/shader.cpp.i
-.PHONY : street/render/shader.i
+city/city.i: city/city.cpp.i
+.PHONY : city/city.i
 
 # target to preprocess a source file
-street/render/shader.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/street/render/shader.cpp.i
-.PHONY : street/render/shader.cpp.i
+city/city.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/city/city.cpp.i
+.PHONY : city/city.cpp.i
 
-street/render/shader.s: street/render/shader.cpp.s
-.PHONY : street/render/shader.s
+city/city.s: city/city.cpp.s
+.PHONY : city/city.s
 
 # target to generate assembly for a file
-street/render/shader.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/street/render/shader.cpp.s
-.PHONY : street/render/shader.cpp.s
+city/city.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/city/city.cpp.s
+.PHONY : city/city.cpp.s
 
-street/street.o: street/street.cpp.o
-.PHONY : street/street.o
+city/render/shader.o: city/render/shader.cpp.o
+.PHONY : city/render/shader.o
 
 # target to build an object file
-street/street.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/street/street.cpp.o
-.PHONY : street/street.cpp.o
+city/render/shader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/city/render/shader.cpp.o
+.PHONY : city/render/shader.cpp.o
 
-street/street.i: street/street.cpp.i
-.PHONY : street/street.i
+city/render/shader.i: city/render/shader.cpp.i
+.PHONY : city/render/shader.i
 
 # target to preprocess a source file
-street/street.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/street/street.cpp.i
-.PHONY : street/street.cpp.i
+city/render/shader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/city/render/shader.cpp.i
+.PHONY : city/render/shader.cpp.i
 
-street/street.s: street/street.cpp.s
-.PHONY : street/street.s
+city/render/shader.s: city/render/shader.cpp.s
+.PHONY : city/render/shader.s
 
 # target to generate assembly for a file
-street/street.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/street.dir/build.make CMakeFiles/street.dir/street/street.cpp.s
-.PHONY : street/street.cpp.s
+city/render/shader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/city.dir/build.make CMakeFiles/city.dir/city/render/shader.cpp.s
+.PHONY : city/render/shader.cpp.s
 
 # Help Target
 help:
@@ -211,15 +211,15 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... city"
 	@echo "... glad"
 	@echo "... glfw"
-	@echo "... street"
-	@echo "... street/render/shader.o"
-	@echo "... street/render/shader.i"
-	@echo "... street/render/shader.s"
-	@echo "... street/street.o"
-	@echo "... street/street.i"
-	@echo "... street/street.s"
+	@echo "... city/city.o"
+	@echo "... city/city.i"
+	@echo "... city/city.s"
+	@echo "... city/render/shader.o"
+	@echo "... city/render/shader.i"
+	@echo "... city/render/shader.s"
 .PHONY : help
 
 
