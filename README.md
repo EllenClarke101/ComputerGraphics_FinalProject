@@ -11,6 +11,8 @@ To Run Project:
 - cmake --build .
 - ./city
 
+You can also move forward, backward, left and right using WASD
+
 To Run Animation:
 - cd lab4 - Animation Example
 - Delete the cmake-build-debug and generate your own using cmake -S . -B cmake-build-debug
